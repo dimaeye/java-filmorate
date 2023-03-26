@@ -13,7 +13,7 @@ import java.util.List;
 @Validated
 public interface UserResource {
     @PostMapping
-    ResponseEntity<Void> createUser(@Valid @RequestBody User user);
+    ResponseEntity<String> createUser(@Valid @RequestBody User user);
 
     @PutMapping
     ResponseEntity<Void> updateUser(@Valid @RequestBody User user);

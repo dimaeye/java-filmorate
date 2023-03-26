@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.presenter.rest.api.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
@@ -19,7 +20,7 @@ public class UserController implements UserResource {
 
 
     @Override
-    public ResponseEntity<Void> createUser(User user) {
+    public ResponseEntity<String> createUser(User user) {
         int id = uniqueUserId.incrementAndGet();
         user.setId(id);
 
@@ -32,7 +33,8 @@ public class UserController implements UserResource {
 
         return ResponseEntity
                 .ok()
-                .build();
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(String.valueOf(user.getId()));
     }
 
     @Override

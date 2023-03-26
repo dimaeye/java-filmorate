@@ -14,7 +14,7 @@ import java.util.List;
 public interface FilmResource {
 
     @PostMapping
-    ResponseEntity<Void> addFilm(@Valid @RequestBody Film film);
+    ResponseEntity<String> addFilm(@Valid @RequestBody Film film);
 
     @PutMapping
     ResponseEntity<Void> updateFilm(@Valid @RequestBody Film film);

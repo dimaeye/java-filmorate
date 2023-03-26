@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.presenter.rest.api.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -18,7 +19,7 @@ public class FilmController implements FilmResource {
     private final AtomicInteger uniqueFilmId = new AtomicInteger(0);
 
     @Override
-    public ResponseEntity<Void> addFilm(Film film) {
+    public ResponseEntity<String> addFilm(Film film) {
         int id = uniqueFilmId.incrementAndGet();
         film.setId(id);
 
@@ -28,7 +29,8 @@ public class FilmController implements FilmResource {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .build();
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(String.valueOf(film.getId()));
     }
 
     @Override

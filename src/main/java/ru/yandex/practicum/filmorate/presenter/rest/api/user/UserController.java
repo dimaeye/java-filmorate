@@ -23,7 +23,7 @@ public class UserController implements UserResource {
         int id = uniqueUserId.incrementAndGet();
         user.setId(id);
 
-        if (user.getName().isBlank())
+        if (user.getName() == null || user.getName().isBlank())
             user.setName(user.getLogin());
 
         log.info("Добавление нового пользователя {}", user);
@@ -43,7 +43,7 @@ public class UserController implements UserResource {
         if (optionalUser.isPresent()) {
             User userForUpdate = optionalUser.get();
 
-            if (user.getName().isBlank())
+            if (user.getName() == null || user.getName().isBlank())
                 user.setName(user.getLogin());
 
             userForUpdate.setName(user.getName());

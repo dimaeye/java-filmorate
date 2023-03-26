@@ -1,10 +1,10 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
+import ru.yandex.practicum.filmorate.annotations.NotFutureDateConstraint;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
@@ -14,10 +14,11 @@ public class User {
     private int id;
     @Email
     private String email;
-    @NotNull
-    @Pattern(regexp = "^((?!\\s).)*$")
+    @NotEmpty(message = "логин не может быть пустым")
+    @Pattern(regexp = "^((?!\\s).)*$", message = "логин не может содержать пробелы")
     private String login;
     private String name;
     @NotNull
+    @NotFutureDateConstraint(message = "дата рождения не может быть в будущем")
     private LocalDate birthday;
 }

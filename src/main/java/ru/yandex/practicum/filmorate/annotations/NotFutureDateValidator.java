@@ -7,6 +7,6 @@ import java.time.LocalDate;
 public class NotFutureDateValidator implements ConstraintValidator<NotFutureDateConstraint, LocalDate> {
     @Override
     public boolean isValid(LocalDate localDate, ConstraintValidatorContext constraintValidatorContext) {
-        return localDate.isBefore(LocalDate.now());
+        return localDate.isBefore(LocalDate.now()) || localDate.isEqual(LocalDate.now());
     }
 }

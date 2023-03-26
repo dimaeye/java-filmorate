@@ -36,15 +36,85 @@ class FilmControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())
-                .andExpect(status().is2xxSuccessful())
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.TEXT_PLAIN));
     }
 
     @Test
-    void updateFilm() {
+    void shouldReturnBadRequestWhenCreateFilmWithFailName() throws Exception {
+        Film film = new Film(
+                "   ", "adipisicing",
+                LocalDate.of(1967, 3, 25), 100
+        );
+
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsBytes(film))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void getAllFilms() {
+    void shouldReturnBadRequestWhenCreateFilmWithLargeDescription() throws Exception {
+        Film film = new Film(
+                "Film name", "Пятеро друзей ( комик-группа «Шарло»), приезжают в город Бризуль. " +
+                "Здесь они хотят разыскать господина Огюста Куглова, который задолжал им деньги, " +
+                "а именно 20 миллионов. о Куглов, который за время «своего отсутствия», стал кандидатом Коломбани.",
+                LocalDate.of(1967, 3, 25), 100
+        );
+
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsBytes(film))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void shouldReturnBadRequestWhenCreateFilmWithBadReleaseDate() throws Exception {
+        Film film = new Film(
+                "Film", "adipisicing",
+                LocalDate.of(1895, 12, 27), 100
+        );
+
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsBytes(film))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnIsCreatedWhenCreateFilmWithReleaseDateEqualDateOfBirthOfCinema() throws Exception {
+        Film film = new Film(
+                "Film", "adipisicing",
+                LocalDate.of(1895, 12, 28), 100
+        );
+
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsBytes(film))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenCreateFilmWithNegativeDuration() throws Exception {
+        Film film = new Film(
+                "Film", "adipisicing",
+                LocalDate.of(1895, 12, 29), -100
+        );
+
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsBytes(film))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
 }

@@ -32,7 +32,7 @@ public class UserController implements UserResource {
         log.info("Пользователь id={} добавлен успешно", user.getId());
 
         return ResponseEntity
-                .ok()
+                .status(HttpStatus.CREATED)
                 .contentType(MediaType.TEXT_PLAIN)
                 .body(String.valueOf(user.getId()));
     }

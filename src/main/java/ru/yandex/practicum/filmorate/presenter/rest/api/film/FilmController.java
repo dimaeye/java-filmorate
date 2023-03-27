@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class FilmController implements FilmResource {
     private final AtomicInteger uniqueFilmId = new AtomicInteger(0);
 
     @Override
-    public ResponseEntity<String> addFilm(Film film) {
+    public ResponseEntity<Film> addFilm(Film film) {
         int id = uniqueFilmId.incrementAndGet();
         film.setId(id);
 
@@ -29,12 +30,12 @@ public class FilmController implements FilmResource {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .contentType(MediaType.TEXT_PLAIN)
-                .body(String.valueOf(film.getId()));
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(film);
     }
 
     @Override
-    public ResponseEntity<Void> updateFilm(Film film) {
+    public ResponseEntity<Film> updateFilm(Film film) {
         log.info("Обновление данных фильма {}", film);
 
         Optional<Film> optionalFilm = films.stream().filter(f -> f.getId() == film.getId()).findFirst();
@@ -46,16 +47,17 @@ public class FilmController implements FilmResource {
             filmForUpdate.setDescription(film.getDescription());
             filmForUpdate.setDuration(film.getDuration());
             filmForUpdate.setReleaseDate(film.getReleaseDate());
-            log.info("Фильм id={} обновлен успешно", film.getId());
+            log.info("Фильм id={} обновлен успешно", filmForUpdate.getId());
 
             return ResponseEntity
                     .ok()
-                    .build();
+                    .body(filmForUpdate);
         } else {
             log.warn("Фильм id={} не найден для обновления", film.getId());
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .build();
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Фильм не найден"
+            );
         }
     }
 

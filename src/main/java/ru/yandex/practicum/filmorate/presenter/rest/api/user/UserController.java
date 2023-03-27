@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class UserController implements UserResource {
 
 
     @Override
-    public ResponseEntity<String> createUser(User user) {
+    public ResponseEntity<User> createUser(User user) {
         int id = uniqueUserId.incrementAndGet();
         user.setId(id);
 
@@ -33,12 +34,12 @@ public class UserController implements UserResource {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .contentType(MediaType.TEXT_PLAIN)
-                .body(String.valueOf(user.getId()));
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(user);
     }
 
     @Override
-    public ResponseEntity<Void> updateUser(User user) {
+    public ResponseEntity<User> updateUser(User user) {
         log.info("Обновление данных пользователя {}", user);
         Optional<User> optionalUser = users.stream().filter(u -> u.getId() == user.getId()).findFirst();
 
@@ -52,16 +53,17 @@ public class UserController implements UserResource {
             userForUpdate.setEmail(user.getEmail());
             userForUpdate.setLogin(user.getLogin());
             userForUpdate.setBirthday(user.getBirthday());
-            log.info("Пользователь id={} обновлен успешно", user.getId());
+            log.info("Пользователь id={} обновлен успешно", userForUpdate.getId());
 
             return ResponseEntity
                     .ok()
-                    .build();
+                    .body(userForUpdate);
         } else {
             log.warn("Пользователь id={} не найден для обновления", user.getId());
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .build();
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Пользователь не найден"
+            );
         }
     }
 

@@ -14,10 +14,10 @@ import java.util.List;
 public interface FilmResource {
 
     @PostMapping
-    ResponseEntity<String> addFilm(@Valid @RequestBody Film film);
+    ResponseEntity<Film> addFilm(@Valid @RequestBody Film film);
 
     @PutMapping
-    ResponseEntity<Void> updateFilm(@Valid @RequestBody Film film);
+    ResponseEntity<Film> updateFilm(@Valid @RequestBody Film film);
 
     @GetMapping
     ResponseEntity<List<Film>> getAllFilms();

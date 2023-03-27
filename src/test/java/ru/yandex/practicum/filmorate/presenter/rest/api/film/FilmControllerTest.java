@@ -12,8 +12,7 @@ import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(FilmController.class)
 class FilmControllerTest {
@@ -37,7 +36,11 @@ class FilmControllerTest {
                 )
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.TEXT_PLAIN));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.name").value(film.getName()))
+                .andExpect(jsonPath("$.description").value(film.getDescription()))
+                .andExpect(jsonPath("$.releaseDate").value(film.getReleaseDate().toString()))
+                .andExpect(jsonPath("$.duration").value(film.getDuration()));
     }
 
     @Test

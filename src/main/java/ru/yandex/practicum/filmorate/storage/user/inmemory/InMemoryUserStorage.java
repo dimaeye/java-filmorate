@@ -25,6 +25,20 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
+    public User get(int userId) {
+        Optional<User> optionalUser = users.stream().filter(u -> u.getId() == userId).findFirst();
+        if (optionalUser.isPresent())
+            return optionalUser.get();
+        else
+            throw new RuntimeException("Пользователь с идентификатором " + userId + " не найден!");
+    }
+
+    @Override
+    public List<User> getAll() {
+        return new ArrayList<>(users);
+    }
+
+    @Override
     public User update(User user) {
         Optional<User> optionalUser = users.stream().filter(u -> u.getId() == user.getId()).findFirst();
 

@@ -4,14 +4,12 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
-    private final List<Film> films = new ArrayList<>();
+    private final Set<Film> films = new TreeSet<Film>(Comparator.comparingInt(Film::getLikesCount));
     private final AtomicInteger uniqueFilmId = new AtomicInteger(0);
 
     @Override
@@ -22,6 +20,20 @@ public class InMemoryFilmStorage implements FilmStorage {
         films.add(film);
 
         return id;
+    }
+
+    @Override
+    public Film get(int filmId) {
+        Optional<Film> optionalFilm = films.stream().filter(f -> f.getId() == filmId).findFirst();
+        if (optionalFilm.isPresent())
+            return optionalFilm.get();
+        else
+            throw new RuntimeException("Фильм с идентификатором " + filmId + " не найден!");
+    }
+
+    @Override
+    public List<Film> getAll() {
+        return new ArrayList<>(films);
     }
 
     @Override

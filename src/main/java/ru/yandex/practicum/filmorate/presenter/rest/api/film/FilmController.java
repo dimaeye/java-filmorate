@@ -5,65 +5,52 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @Slf4j
 public class FilmController implements FilmResource {
-    private final List<Film> films = new ArrayList<>();
-    private final AtomicInteger uniqueFilmId = new AtomicInteger(0);
+    private final FilmService filmService;
+
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @Override
     public ResponseEntity<Film> addFilm(Film film) {
-        int id = uniqueFilmId.incrementAndGet();
-        film.setId(id);
-
         log.info("Добавление нового фильма {}", film);
-        films.add(film);
-        log.info("Фильм id={} добавлен успешно", film.getId());
+        Film newFilm = filmService.addFilm(film);
+        log.info("Фильм id={} добавлен успешно", newFilm.getId());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(film);
+                .body(newFilm);
     }
 
     @Override
     public ResponseEntity<Film> updateFilm(Film film) {
         log.info("Обновление данных фильма {}", film);
+        Film updatedFilm = filmService.updateFilm(film);
+        log.info("Фильм id={} обновлен успешно", updatedFilm.getId());
 
-        Optional<Film> optionalFilm = films.stream().filter(f -> f.getId() == film.getId()).findFirst();
+        return ResponseEntity
+                .ok()
+                .body(updatedFilm);
 
-        if (optionalFilm.isPresent()) {
-            Film filmForUpdate = optionalFilm.get();
-
-            filmForUpdate.setName(film.getName());
-            filmForUpdate.setDescription(film.getDescription());
-            filmForUpdate.setDuration(film.getDuration());
-            filmForUpdate.setReleaseDate(film.getReleaseDate());
-            log.info("Фильм id={} обновлен успешно", filmForUpdate.getId());
-
-            return ResponseEntity
-                    .ok()
-                    .body(filmForUpdate);
-        } else {
-            log.warn("Фильм id={} не найден для обновления", film.getId());
+            /*log.warn("Фильм id={} не найден для обновления", film.getId());
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "Фильм не найден"
-            );
-        }
+            );*/
     }
 
     @Override
     public ResponseEntity<List<Film>> getAllFilms() {
         return ResponseEntity
-                .ok(films);
+                .ok(filmService.getAllFilms());
     }
 }

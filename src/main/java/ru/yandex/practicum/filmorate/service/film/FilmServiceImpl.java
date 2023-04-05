@@ -61,4 +61,9 @@ public class FilmServiceImpl implements FilmService {
     public List<Film> getTopFilms(int count) {
         return filmStorage.getAll().stream().limit(count).collect(Collectors.toList());
     }
+
+    @Override
+    public List<Film> getAllFilms() {
+        return filmStorage.getAll();
+    }
 }

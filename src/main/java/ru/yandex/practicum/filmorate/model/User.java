@@ -28,7 +28,7 @@ public class User {
     private LocalDate birthday;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    private Set<Integer> friends = new HashSet<>();
+    private transient Set<Integer> friends = new HashSet<>();
 
     public void addFriend(int friendId) {
         friends.add(friendId);

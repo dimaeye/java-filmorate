@@ -30,7 +30,7 @@ public class Film {
     private int duration;
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    private Set<Integer> likes = new HashSet<>();
+    private transient Set<Integer> likes = new HashSet<>();
 
     public void addLike(int userId) {
         likes.add(userId);

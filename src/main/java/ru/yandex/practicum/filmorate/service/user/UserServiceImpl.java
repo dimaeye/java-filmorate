@@ -34,6 +34,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getAllUsers() {
+        return userStorage.getAll();
+    }
+
+    @Override
     public void addFriend(int userId, int friendId) {
         User user = userStorage.get(userId);
         User friend = userStorage.get(friendId);

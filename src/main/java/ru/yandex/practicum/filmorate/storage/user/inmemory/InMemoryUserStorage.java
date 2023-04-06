@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.user.inmemory;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.ArrayList;
@@ -25,12 +26,12 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User get(int userId) {
+    public User get(int userId) throws ObjectNotFoundException {
         Optional<User> optionalUser = users.stream().filter(u -> u.getId() == userId).findFirst();
         if (optionalUser.isPresent())
             return optionalUser.get();
         else
-            throw new RuntimeException("Пользователь с идентификатором " + userId + " не найден!");
+            throw new ObjectNotFoundException(getObjectNotFoundErrorMessage(userId));
     }
 
     @Override
@@ -39,7 +40,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User update(User user) {
+    public User update(User user) throws ObjectNotFoundException {
         Optional<User> optionalUser = users.stream().filter(u -> u.getId() == user.getId()).findFirst();
 
         if (optionalUser.isPresent()) {
@@ -55,15 +56,19 @@ public class InMemoryUserStorage implements UserStorage {
 
             return userForUpdate;
         } else
-            throw new RuntimeException("Пользователь с идентификатором " + user.getId() + " не найден!");
+            throw new ObjectNotFoundException(getObjectNotFoundErrorMessage(user.getId()));
     }
 
     @Override
-    public void delete(int userId) {
+    public void delete(int userId) throws ObjectNotFoundException {
         Optional<User> optionalUser = users.stream().filter(u -> u.getId() == userId).findFirst();
         if (optionalUser.isPresent())
             users.remove(optionalUser.get());
         else
-            throw new RuntimeException("Пользователь с идентификатором " + userId + " не найден!");
+            throw new ObjectNotFoundException(getObjectNotFoundErrorMessage(userId));
+    }
+
+    private String getObjectNotFoundErrorMessage(int userId) {
+        return "Пользователь с идентификатором " + userId + " не найден!";
     }
 }

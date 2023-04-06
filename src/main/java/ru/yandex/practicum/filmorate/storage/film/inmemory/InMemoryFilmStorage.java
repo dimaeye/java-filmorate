@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.film.inmemory;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.*;
@@ -23,12 +24,12 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film get(int filmId) {
+    public Film get(int filmId) throws ObjectNotFoundException {
         Optional<Film> optionalFilm = films.stream().filter(f -> f.getId() == filmId).findFirst();
         if (optionalFilm.isPresent())
             return optionalFilm.get();
         else
-            throw new RuntimeException("Фильм с идентификатором " + filmId + " не найден!");
+            throw new ObjectNotFoundException(getObjectNotFoundErrorMessage(filmId));
     }
 
     @Override
@@ -37,7 +38,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film update(Film film) {
+    public Film update(Film film) throws ObjectNotFoundException {
         Optional<Film> optionalFilm = films.stream().filter(f -> f.getId() == film.getId()).findFirst();
         if (optionalFilm.isPresent()) {
             Film filmForUpdate = optionalFilm.get();
@@ -49,15 +50,19 @@ public class InMemoryFilmStorage implements FilmStorage {
 
             return filmForUpdate;
         } else
-            throw new RuntimeException("Фильм с идентификатором " + film.getId() + " не найден!");
+            throw new ObjectNotFoundException(getObjectNotFoundErrorMessage(film.getId()));
     }
 
     @Override
-    public void delete(int filmId) {
+    public void delete(int filmId) throws ObjectNotFoundException {
         Optional<Film> optionalFilm = films.stream().filter(f -> f.getId() == filmId).findFirst();
         if (optionalFilm.isPresent())
             films.remove(optionalFilm.get());
         else
-            throw new RuntimeException("Фильм с идентификатором " + filmId + " не найден!");
+            throw new ObjectNotFoundException(getObjectNotFoundErrorMessage(filmId));
+    }
+
+    private String getObjectNotFoundErrorMessage(int filmId) {
+        return "Фильм с идентификатором " + filmId + " не найден!";
     }
 }

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
 import ru.yandex.practicum.filmorate.annotations.MinDateConstraint;
@@ -40,6 +41,7 @@ public class Film {
         likes.remove(userId);
     }
 
+    @JsonIgnore
     public List<Integer> getAllLikes() {
         return new ArrayList<>(likes);
     }

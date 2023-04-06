@@ -10,6 +10,8 @@ public interface UserService {
 
     User updateUser(User user) throws UserNotFoundException;
 
+    User getUser(int userId) throws UserNotFoundException;
+
     void deleteUser(int userId) throws UserNotFoundException;
 
     List<User> getAllUsers();

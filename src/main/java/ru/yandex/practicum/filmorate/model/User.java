@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import ru.yandex.practicum.filmorate.annotations.NotFutureDateConstraint;
 
@@ -38,6 +39,7 @@ public class User {
         friends.remove(friendId);
     }
 
+    @JsonIgnore
     public List<Integer> getAllFriends() {
         return new ArrayList<>(friends);
     }

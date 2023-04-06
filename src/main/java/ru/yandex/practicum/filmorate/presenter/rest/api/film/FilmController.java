@@ -40,17 +40,35 @@ public class FilmController implements FilmResource {
         return ResponseEntity
                 .ok()
                 .body(updatedFilm);
-
-            /*log.warn("Фильм id={} не найден для обновления", film.getId());
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Фильм не найден"
-            );*/
     }
 
     @Override
     public ResponseEntity<List<Film>> getAllFilms() {
         return ResponseEntity
                 .ok(filmService.getAllFilms());
+    }
+
+    @Override
+    public ResponseEntity<Film> getFilm(int id) {
+        return ResponseEntity
+                .ok(filmService.getFilm(id));
+    }
+
+    @Override
+    public ResponseEntity<Void> addLike(int id, int userId) {
+        filmService.addLike(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteLike(int id, int userId) {
+        filmService.deleteLike(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<List<Film>> getTopFilms(int count) {
+        return ResponseEntity
+                .ok(filmService.getTopFilms(count));
     }
 }

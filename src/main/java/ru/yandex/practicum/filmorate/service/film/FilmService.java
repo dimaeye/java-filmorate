@@ -11,6 +11,8 @@ public interface FilmService {
 
     Film updateFilm(Film film) throws FilmNotFoundException;
 
+    Film getFilm(int filmId) throws FilmNotFoundException;
+
     void deleteFilm(int filmId) throws FilmNotFoundException;
 
     void addLike(int filmId, int userId) throws FilmNotFoundException, UserNotFoundException;

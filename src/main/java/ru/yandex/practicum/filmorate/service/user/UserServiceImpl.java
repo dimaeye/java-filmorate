@@ -2,7 +2,9 @@ package ru.yandex.practicum.filmorate.service.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
@@ -24,13 +26,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUser(User user) {
-        return userStorage.update(user);
+    public User updateUser(User user) throws UserNotFoundException {
+        try {
+            return userStorage.update(user);
+        } catch (ObjectNotFoundException e) {
+            throw new UserNotFoundException(user.getId());
+        }
     }
 
     @Override
-    public void deleteUser(int userId) {
-        userStorage.delete(userId);
+    public User getUser(int userId) throws UserNotFoundException {
+        try {
+            return userStorage.get(userId);
+        } catch (ObjectNotFoundException e) {
+            throw new UserNotFoundException(userId);
+        }
+    }
+
+    @Override
+    public void deleteUser(int userId) throws UserNotFoundException {
+        try {
+            userStorage.delete(userId);
+        } catch (ObjectNotFoundException e) {
+            throw new UserNotFoundException(userId);
+        }
     }
 
     @Override
@@ -39,26 +58,32 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void addFriend(int userId, int friendId) {
-        User user = userStorage.get(userId);
-        User friend = userStorage.get(friendId);
+    public void addFriend(int userId, int friendId) throws UserNotFoundException {
+        final User user = getUser(userId);
+        final User friend = getUser(friendId);
 
         user.addFriend(friend.getId());
         userStorage.update(user);
-    }
 
-    @Override
-    public void deleteFriend(int userId, int friendId) {
-        User user = userStorage.get(userId);
-        User friend = userStorage.get(friendId);
-
-        user.deleteFriend(friend.getId());
+        friend.addFriend(user.getId());
         userStorage.update(user);
     }
 
     @Override
-    public List<User> getFriends(int userId) {
-        return userStorage.get(userId)
+    public void deleteFriend(int userId, int friendId) throws UserNotFoundException {
+        final User user = getUser(userId);
+        final User friend = getUser(friendId);
+
+        user.deleteFriend(friend.getId());
+        userStorage.update(user);
+
+        friend.deleteFriend(user.getId());
+        userStorage.update(friend);
+    }
+
+    @Override
+    public List<User> getFriends(int userId) throws UserNotFoundException {
+        return getUser(userId)
                 .getAllFriends().stream()
                 .map(userStorage::get)
                 .collect(Collectors.toList());

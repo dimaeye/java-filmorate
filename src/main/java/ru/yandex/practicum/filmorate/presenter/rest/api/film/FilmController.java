@@ -56,13 +56,17 @@ public class FilmController implements FilmResource {
 
     @Override
     public ResponseEntity<Void> addLike(int id, int userId) {
+        log.info("Пользователь {} ставит лайк фильму {}", userId, id);
         filmService.addLike(id, userId);
+        log.info("Пользователь {} поставил лайк фильму {} успешно", userId, id);
         return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Void> deleteLike(int id, int userId) {
+        log.info("Пользователь {} удаляет лайк фильма {}", userId, id);
         filmService.deleteLike(id, userId);
+        log.info("Пользователь {} удалил лайк фильма {} успешно", userId, id);
         return ResponseEntity.ok().build();
     }
 

@@ -2,14 +2,18 @@ package ru.yandex.practicum.filmorate.presenter.rest.api.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.user.UserService;
 
 import java.time.LocalDate;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -22,11 +26,20 @@ class UserControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @MockBean
+    private UserService userService;
+
     @Test
     void createUser() throws Exception {
         User user = new User(
                 "mail@mail.ru", "dolore", LocalDate.now()
         );
+
+        User userResult = new User(
+                user.getEmail(), user.getLogin(), user.getBirthday()
+        );
+        userResult.setName(user.getLogin());
+        Mockito.when(userService.addUser(any(User.class))).thenReturn(userResult);
 
         mockMvc.perform(post("/users")
                         .content(objectMapper.writeValueAsBytes(user))

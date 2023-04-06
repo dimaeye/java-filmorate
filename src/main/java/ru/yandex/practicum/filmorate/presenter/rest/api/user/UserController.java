@@ -63,13 +63,17 @@ public class UserController implements UserResource {
 
     @Override
     public ResponseEntity<Void> addFriend(int id, int friendId) {
+        log.info("Добавления в друзья {} у пользователя {}", friendId, id);
         userService.addFriend(id, friendId);
+        log.info("Добавления в друзья {} у пользователя {} выполнено успешно", friendId, id);
         return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Void> deleteFriend(int id, int friendId) {
+        log.info("Удаление из друзей {} у пользователя {}", friendId, id);
         userService.deleteFriend(id, friendId);
+        log.info("Удаление из друзей {} у пользователя {} выполнено успешно", friendId, id);
         return ResponseEntity.ok().build();
     }
 

@@ -2,14 +2,18 @@ package ru.yandex.practicum.filmorate.presenter.rest.api.film;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import java.time.LocalDate;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -23,12 +27,17 @@ class FilmControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @MockBean
+    private FilmService filmService;
+
     @Test
     void addFilm() throws Exception {
         Film film = new Film(
                 "nisi eiusmod", "adipisicing",
                 LocalDate.of(1967, 3, 25), 100
         );
+
+        Mockito.when(filmService.addFilm(any(Film.class))).thenReturn(film);
 
         mockMvc.perform(post("/films")
                         .content(objectMapper.writeValueAsBytes(film))
@@ -96,6 +105,8 @@ class FilmControllerTest {
                 "Film", "adipisicing",
                 LocalDate.of(1895, 12, 28), 100
         );
+
+        Mockito.when(filmService.addFilm(any(Film.class))).thenReturn(film);
 
         mockMvc.perform(post("/films")
                         .content(objectMapper.writeValueAsBytes(film))

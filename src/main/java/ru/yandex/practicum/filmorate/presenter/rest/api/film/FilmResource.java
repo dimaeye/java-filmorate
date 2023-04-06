@@ -31,6 +31,6 @@ public interface FilmResource {
     @DeleteMapping("/{id}/like/{userId}")
     ResponseEntity<Void> deleteLike(@PathVariable int id, @PathVariable int userId);
 
-    @GetMapping("/films/popular")
-    ResponseEntity<List<Film>> getTopFilms(@RequestParam int count);
+    @GetMapping("/popular")
+    ResponseEntity<List<Film>> getTopFilms(@RequestParam(required = false, defaultValue = "10") int count);
 }

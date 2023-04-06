@@ -5,12 +5,14 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
-    private final Set<Film> films = new TreeSet<Film>(Comparator.comparingInt(Film::getLikesCount));
+    private final List<Film> films = new ArrayList<>();
     private final AtomicInteger uniqueFilmId = new AtomicInteger(0);
 
     @Override

@@ -1,75 +1,97 @@
 package ru.yandex.practicum.filmorate.presenter.rest.api.user;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.user.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class UserController implements UserResource {
-    private final List<User> users = new ArrayList<>();
-    private final AtomicInteger uniqueUserId = new AtomicInteger(0);
+    private final UserService userService;
 
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @Override
     public ResponseEntity<User> createUser(User user) {
-        int id = uniqueUserId.incrementAndGet();
-        user.setId(id);
-
+        log.info("Добавление нового пользователя {}", user);
         if (user.getName() == null || user.getName().isBlank())
             user.setName(user.getLogin());
-
-        log.info("Добавление нового пользователя {}", user);
-        users.add(user);
+        User newUser = userService.addUser(user);
         log.info("Пользователь id={} добавлен успешно", user.getId());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(user);
+                .body(newUser);
     }
 
     @Override
     public ResponseEntity<User> updateUser(User user) {
         log.info("Обновление данных пользователя {}", user);
-        Optional<User> optionalUser = users.stream().filter(u -> u.getId() == user.getId()).findFirst();
+        if (user.getName() == null || user.getName().isBlank())
+            user.setName(user.getLogin());
+        User updatedUser = userService.updateUser(user);
+        log.info("Пользователь id={} обновлен успешно", updatedUser.getId());
 
-        if (optionalUser.isPresent()) {
-            User userForUpdate = optionalUser.get();
-
-            if (user.getName() == null || user.getName().isBlank())
-                user.setName(user.getLogin());
-
-            userForUpdate.setName(user.getName());
-            userForUpdate.setEmail(user.getEmail());
-            userForUpdate.setLogin(user.getLogin());
-            userForUpdate.setBirthday(user.getBirthday());
-            log.info("Пользователь id={} обновлен успешно", userForUpdate.getId());
-
-            return ResponseEntity
-                    .ok()
-                    .body(userForUpdate);
-        } else {
-            log.warn("Пользователь id={} не найден для обновления", user.getId());
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Пользователь не найден"
-            );
-        }
+        return ResponseEntity
+                .ok()
+                .body(updatedUser);
     }
 
     @Override
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity
-                .ok(users);
+                .ok(userService.getAllUsers());
+    }
+
+    @Override
+    public ResponseEntity<User> getUser(int id) {
+        return ResponseEntity
+                .ok(userService.getUser(id));
+    }
+
+    @Override
+    public ResponseEntity<Void> addFriend(int id, int friendId) {
+        log.info("Добавления в друзья {} у пользователя {}", friendId, id);
+        userService.addFriend(id, friendId);
+        log.info("Добавления в друзья {} у пользователя {} выполнено успешно", friendId, id);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteFriend(int id, int friendId) {
+        log.info("Удаление из друзей {} у пользователя {}", friendId, id);
+        userService.deleteFriend(id, friendId);
+        log.info("Удаление из друзей {} у пользователя {} выполнено успешно", friendId, id);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<List<User>> getFriends(int id) {
+        return ResponseEntity
+                .ok(userService.getFriends(id));
+    }
+
+    @Override
+    public ResponseEntity<List<User>> getCommonFriends(int id, int otherId) {
+        List<User> userFriends = userService.getFriends(id);
+        List<User> otherUserFriends = userService.getFriends(otherId);
+
+        return ResponseEntity.ok(
+                userFriends.stream()
+                        .filter(otherUserFriends::contains)
+                        .collect(Collectors.toList())
+        );
     }
 }

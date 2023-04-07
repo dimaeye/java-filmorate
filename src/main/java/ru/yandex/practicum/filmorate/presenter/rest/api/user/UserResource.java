@@ -21,4 +21,18 @@ public interface UserResource {
     @GetMapping
     ResponseEntity<List<User>> getAllUsers();
 
+    @GetMapping("/{id}")
+    ResponseEntity<User> getUser(@PathVariable int id);
+
+    @PutMapping("/{id}/friends/{friendId}")
+    ResponseEntity<Void> addFriend(@PathVariable int id, @PathVariable int friendId);
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    ResponseEntity<Void> deleteFriend(@PathVariable int id, @PathVariable int friendId);
+
+    @GetMapping("{id}/friends")
+    ResponseEntity<List<User>> getFriends(@PathVariable int id);
+
+    @GetMapping("{id}/friends/common/{otherId}")
+    ResponseEntity<List<User>> getCommonFriends(@PathVariable int id, @PathVariable int otherId);
 }

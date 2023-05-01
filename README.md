@@ -1,7 +1,7 @@
 # java-filmorate
 
 Схема БД:
-/filmorate-diagram.png
+![Screenshot](filmorate-diagram.png)
 
 SQL-запросы для создания таблиц:
 

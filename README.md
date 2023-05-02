@@ -27,8 +27,8 @@ ORDER BY likes_count DESC;
 ### Получить полную информацию о фильмах
 ```sql
 SELECT  f.*, 
-		mpa.title AS mpa_title, 
-		string_agg(g.title, ', ')  AS genre
+        mpa.title AS mpa_title, 
+        string_agg(g.title, ', ')  AS genre
 FROM films AS f
 LEFT OUTER JOIN film_genre AS fg ON f.id = fg.film_id
 LEFT OUTER JOIN genre AS g ON g.id = fg.genre_id

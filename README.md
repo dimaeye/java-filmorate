@@ -17,7 +17,7 @@ INNER JOIN friendship_status fst ON  fst.id = f.status_id;
 ### Получить ТОП 10 фильмов и кол-во лайков
 ```sql
 SELECT  f.*, 
-		COUNT(u.id) AS likes_count 
+        COUNT(u.id) AS likes_count 
 FROM films AS f
 LEFT OUTER JOIN likes AS l ON f.id = l.film_id
 LEFT OUTER JOIN users as u ON l.user_id = u.id

@@ -1,137 +1,37 @@
 # java-filmorate
 
-Схема БД:
+## Схема БД:
 ![Screenshot](filmorate-diagram.png)
 
-SQL-запросы для создания таблиц:
+## Примеры запросов для основных операций приложения:
 
+### Получить список друзей и "статус дружбы":
 ```sql
-BEGIN;
+SELECT  u.*, 
+        fst.status 
+FROM users AS u
+INNER JOIN friends AS f ON u.id = f.user_id OR u.id = f.friend_id
+INNER JOIN friendship_status fst ON  fst.id = f.status_id;
+```
 
-
-CREATE TABLE IF NOT EXISTS public.films
-(
-    id integer NOT NULL,
-    name text NOT NULL,
-    description text NOT NULL,
-    release_date timestamp without time zone NOT NULL,
-    duration integer NOT NULL,
-    mpa_id integer NOT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.users
-(
-    id integer NOT NULL,
-    email text NOT NULL,
-    login text NOT NULL,
-    name text NOT NULL,
-    birthday timestamp without time zone NOT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.mpa
-(
-    id integer NOT NULL,
-    title text NOT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.genre
-(
-    id integer NOT NULL,
-    title text NOT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.film_genre
-(
-    film_id integer NOT NULL,
-    genre_id integer NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS public.likes
-(
-    film_id integer NOT NULL,
-    user_id integer NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS public.friendship_status
-(
-    id integer NOT NULL,
-    status text NOT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.friends
-(
-    user_id integer NOT NULL,
-    friend_id integer NOT NULL,
-    status_id integer NOT NULL
-);
-
-ALTER TABLE IF EXISTS public.films
-    ADD CONSTRAINT mpa_foreign_key FOREIGN KEY (mpa_id)
-    REFERENCES public.mpa (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS public.film_genre
-    ADD CONSTRAINT film_foreign_key FOREIGN KEY (film_id)
-    REFERENCES public.films (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS public.film_genre
-    ADD CONSTRAINT genre_foreign_key FOREIGN KEY (genre_id)
-    REFERENCES public.genre (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS public.likes
-    ADD CONSTRAINT film_foreign_key FOREIGN KEY (film_id)
-    REFERENCES public.films (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS public.likes
-    ADD CONSTRAINT user_foreign_key FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS public.friends
-    ADD CONSTRAINT user_foreign_key FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS public.friends
-    ADD CONSTRAINT friend_foreign_key FOREIGN KEY (friend_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS public.friends
-    ADD CONSTRAINT status_foreign_key FOREIGN KEY (status_id)
-    REFERENCES public.friendship_status (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
-END;
+### Получить ТОП 10 фильмов и кол-во лайков
+```sql
+SELECT  f.*, 
+        COUNT(u.id) AS likes
+FROM films AS f
+INNER JOIN likes AS l ON f.id = l.film_id
+INNER JOIN users as u ON l.user_id = u.id
+GROUP BY f.id
+ORDER BY likes;
+```
+### Получить полную информацию о фильмах
+```sql
+SELECT  f.*, 
+		mpa.title AS mpa_title, 
+		string_agg(g.title, ', ')  AS genre
+FROM films AS f
+INNER JOIN film_genre AS fg ON f.id = fg.film_id
+INNER JOIN genre AS g ON g.id = fg.genre_id
+INNER JOIN mpa ON f.mpa_id = mpa.id
+GROUP BY f.id, mpa.title;
 ```

@@ -11,15 +11,15 @@ SELECT  fr.*,
         fst.status 
 FROM
 	(SELECT u.*, 
-            f.status_id,
-            f.friend_id
+            	f.status_id,
+            	f.friend_id
 	FROM users AS u
 	INNER JOIN friends AS f ON u.id = f.user_id
 	WHERE u.id = ??
 	UNION
 	SELECT  u.*, 
 	        f.status_id,
-            f.user_id
+            	f.user_id
 	FROM users AS u
 	INNER JOIN friends AS f ON u.id = f.friend_id
 	WHERE u.id = ??) AS fr

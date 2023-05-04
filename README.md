@@ -37,6 +37,7 @@ LEFT OUTER JOIN users as u ON l.user_id = u.id
 GROUP BY f.id
 ORDER BY likes_count DESC;
 ```
+
 ### Получить полную информацию о фильмах:
 ```sql
 SELECT  f.*, 

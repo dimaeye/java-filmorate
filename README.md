@@ -8,18 +8,18 @@
 ### Получить список друзей пользователя и "статус дружбы":
 ```sql
 SELECT  fr.*, 
-		fst.status 
+        fst.status 
 FROM
 	(SELECT u.*, 
-			f.status_id,
-			f.friend_id
+            f.status_id,
+            f.friend_id
 	FROM users AS u
 	INNER JOIN friends AS f ON u.id = f.user_id
 	WHERE u.id = ??
 	UNION
 	SELECT  u.*, 
-			f.status_id,
-			f.user_id
+	        f.status_id,
+            f.user_id
 	FROM users AS u
 	INNER JOIN friends AS f ON u.id = f.friend_id
 	WHERE u.id = ??) AS fr
@@ -30,7 +30,7 @@ LEFT JOIN friendship_status AS fst ON fr.status_id = fst.id;
 ```sql
 SELECT  f.*, 
         COUNT(u.id) AS likes_count,
-		ROUND(AVG(EXTRACT('year' FROM CURRENT_DATE) - EXTRACT('year' FROM u.birthday))) AS avg_age
+        ROUND(AVG(EXTRACT('year' FROM CURRENT_DATE) - EXTRACT('year' FROM u.birthday))) AS avg_age
 FROM films AS f
 LEFT OUTER JOIN likes AS l ON f.id = l.film_id
 LEFT OUTER JOIN users as u ON l.user_id = u.id

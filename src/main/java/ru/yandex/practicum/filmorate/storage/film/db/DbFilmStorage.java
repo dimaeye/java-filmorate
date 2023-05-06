@@ -5,9 +5,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmGenre;
+import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 @Component
@@ -27,9 +31,14 @@ public class DbFilmStorage implements FilmStorage {
 
     @Override
     public Film get(int filmId) throws ObjectNotFoundException {
-        String sql = "select * from film where id = ?";
+        String sql = "select * from films where id = ?";
 
-        return null;
+        Film film = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), filmId)
+                .stream()
+                .findFirst()
+                .orElseThrow();
+
+        return film;
     }
 
     @Override
@@ -45,5 +54,16 @@ public class DbFilmStorage implements FilmStorage {
     @Override
     public void delete(int filmId) throws ObjectNotFoundException {
 
+    }
+
+    private Film makeFilm(ResultSet rs) throws SQLException {
+        return new Film(
+                rs.getString("name"),
+                rs.getString("description"),
+                rs.getDate("release_date").toLocalDate(),
+                rs.getInt("duration"),
+                List.of(FilmGenre.ACTION),
+                MPA.G
+        );
     }
 }

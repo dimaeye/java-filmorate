@@ -32,6 +32,10 @@ public class Film {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private transient Set<Integer> likes = new HashSet<>();
+    @NonNull
+    private List<FilmGenre> genre;
+    @NonNull
+    private MPA mpa;
 
     public void addLike(int userId) {
         likes.add(userId);

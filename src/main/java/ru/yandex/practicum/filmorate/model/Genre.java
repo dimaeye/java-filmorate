@@ -4,9 +4,8 @@ import lombok.Data;
 import lombok.NonNull;
 
 @Data
-public class FriendshipStatus {
+public class Genre {
     @NonNull
     private int id;
-    @NonNull
-    private String status;
+    private String title;
 }

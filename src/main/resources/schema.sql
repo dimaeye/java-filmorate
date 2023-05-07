@@ -7,13 +7,12 @@ CREATE TABLE IF NOT EXISTS film_genre
 
 CREATE TABLE IF NOT EXISTS films
 (
-    id integer NOT NULL auto_increment,
+    id integer NOT NULL auto_increment primary key,
     name text NOT NULL,
     description text NOT NULL,
     release_date timestamp without time zone NOT NULL,
     duration integer NOT NULL,
-    mpa_id integer NOT NULL,
-    CONSTRAINT films_pkey PRIMARY KEY (id)
+    mpa_id integer NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS friends
@@ -25,16 +24,16 @@ CREATE TABLE IF NOT EXISTS friends
 
 CREATE TABLE IF NOT EXISTS friendship_status
 (
-    id integer NOT NULL,
+    id integer NOT NULL auto_increment primary key,
     status text NOT NULL,
-    CONSTRAINT friendship_status_pkey PRIMARY KEY (id)
+    CONSTRAINT status_unique UNIQUE (status)
 );
 
 CREATE TABLE IF NOT EXISTS genre
 (
-    id integer NOT NULL,
+    id integer NOT NULL auto_increment primary key,
     title text NOT NULL,
-    CONSTRAINT genre_pkey PRIMARY KEY (id)
+    CONSTRAINT genre_title_unique UNIQUE (title)
 );
 
 CREATE TABLE IF NOT EXISTS likes
@@ -45,19 +44,18 @@ CREATE TABLE IF NOT EXISTS likes
 
 CREATE TABLE IF NOT EXISTS mpa
 (
-    id integer NOT NULL,
+    id integer NOT NULL auto_increment primary key,
     title text NOT NULL,
-    CONSTRAINT mpa_pkey PRIMARY KEY (id)
+    CONSTRAINT mpa_title_unique UNIQUE (title)
 );
 
 CREATE TABLE IF NOT EXISTS users
 (
-    id integer NOT NULL auto_increment,
+    id integer NOT NULL auto_increment primary key,
     email text NOT NULL,
     login text NOT NULL,
     name text NOT NULL,
-    birthday timestamp without time zone NOT NULL,
-    CONSTRAINT users_pkey PRIMARY KEY (id)
+    birthday timestamp without time zone NOT NULL
 );
 
 ALTER TABLE IF EXISTS film_genre
@@ -97,3 +95,30 @@ ALTER TABLE IF EXISTS likes
 ALTER TABLE IF EXISTS likes
     ADD CONSTRAINT IF NOT EXISTS user_like_foreign_key FOREIGN KEY (user_id)
     REFERENCES users (id);
+
+INSERT INTO mpa(id, title)
+    SELECT * FROM (
+        SELECT 1, 'G' UNION
+        SELECT 2, 'PG' UNION
+        SELECT 3, 'PG-13' UNION
+        SELECT 4, 'R' UNION
+        SELECT 5, 'NC-17'
+    )
+WHERE not exists(SELECT * FROM mpa);
+
+INSERT INTO genre(id, title)
+    SELECT * FROM (
+        SELECT 1, 'Комедия' UNION
+        SELECT 2, 'Драма' UNION
+        SELECT 3, 'Мультфильм' UNION
+        SELECT 4, 'Триллер' UNION
+        SELECT 5, 'Документальный'
+    )
+WHERE not exists(SELECT * FROM genre);
+
+INSERT INTO friendship_status(id, status)
+    SELECT * FROM (
+        SELECT 1, 'неподтверждённая' UNION
+        SELECT 2, 'подтверждённая'
+    )
+WHERE not exists(SELECT * FROM friendship_status);

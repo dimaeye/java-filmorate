@@ -33,7 +33,7 @@ public class Film {
     @Setter(AccessLevel.NONE)
     private transient Set<Integer> likes = new HashSet<>();
     @NonNull
-    private List<FilmGenre> genre;
+    private List<Genre> genres;
     @NonNull
     private MPA mpa;
 

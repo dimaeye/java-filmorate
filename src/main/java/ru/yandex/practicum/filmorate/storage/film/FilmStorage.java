@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import java.util.List;
 
 public interface FilmStorage {
-    int add(Film film) throws ObjectNotFoundException;
+    int add(Film film);
 
     Film get(int filmId) throws ObjectNotFoundException;
 

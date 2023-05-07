@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.film.db;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -17,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Component
 @Qualifier("DbFilmStorage")
@@ -29,9 +31,9 @@ public class DbFilmStorage implements FilmStorage {
     }
 
     @Override
-    public int add(Film film) throws ObjectNotFoundException {
+    public int add(Film film) {
         String addFilmSql = "insert into films(name, description, release_date, duration, mpa_id)" +
-                "values (?, ?, ?, ?, ?, ?)";
+                "values (?, ?, ?, ?, ?)";
         String addGenresSql = "INSERT INTO public.film_genre(film_id, genre_id)" +
                 "values (?, ?)";
 
@@ -46,19 +48,35 @@ public class DbFilmStorage implements FilmStorage {
             stmt.setInt(5, film.getMpa().getId());
             return stmt;
         }, keyHolder);
-        return keyHolder.getKey().intValue();
+
+        int addedFilmId = keyHolder.getKey().intValue();
+
+        jdbcTemplate.batchUpdate(addGenresSql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setInt(1, addedFilmId);
+                ps.setInt(2, film.getGenres().get(i).getId());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return film.getGenres().size();
+            }
+        });
+        return addedFilmId;
     }
 
     @Override
     public Film get(int filmId) throws ObjectNotFoundException {
         String sql = "select * from films where id = ?";
-
-        Film film = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), filmId)
-                .stream()
-                .findFirst()
-                .orElseThrow();
-
-        return film;
+        try {
+            return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), filmId)
+                    .stream()
+                    .findFirst()
+                    .orElseThrow();
+        } catch (NoSuchElementException e) {
+            throw new ObjectNotFoundException(e.getMessage());
+        }
     }
 
     @Override
@@ -68,23 +86,56 @@ public class DbFilmStorage implements FilmStorage {
 
     @Override
     public Film update(Film film) throws ObjectNotFoundException {
+        String sql
         return null;
     }
 
     @Override
     public void delete(int filmId) throws ObjectNotFoundException {
-
+        String sql = "delete from films where id = ?";
+        jdbcTemplate.update(sql, filmId);
     }
 
-    private Film makeFilm(ResultSet rs) throws SQLException {
-       /* return new Film(
+    private Film mapRowToFilm(ResultSet rs) throws SQLException {
+        int filmId = rs.getInt("id");
+        Film film = new Film(
                 rs.getString("name"),
                 rs.getString("description"),
                 rs.getDate("release_date").toLocalDate(),
                 rs.getInt("duration"),
-                List.of(Genre.ACTION),
-                MPA.G
-        );*/
-        throw new  RuntimeException();
+                getAllGenres(filmId),
+                getMPA(rs.getInt("mpa_id"))
+        );
+        film.setId(filmId);
+        return film;
+    }
+
+    private List<Genre> getAllGenres(int filmId) {
+        String sql = "select * from genre " +
+                "where id in (" +
+                "   select genre_id from film_genre" +
+                "   where film_id = ?" +
+                ")";
+        return jdbcTemplate.query(sql, this::mapRowToGenre, filmId);
+    }
+
+    private Genre mapRowToGenre(ResultSet rs, int rowNum) throws SQLException {
+        Genre genre = new Genre(rs.getInt("id"));
+        genre.setTitle(rs.getString("title"));
+        return genre;
+    }
+
+    private MPA getMPA(int id) {
+        String sql = "select * from mpa where id = ?";
+        return jdbcTemplate.query(sql, this::mapRowToMPA, id)
+                .stream()
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private MPA mapRowToMPA(ResultSet rs, int rowNum) throws SQLException {
+        MPA mpa = new MPA(rs.getInt("id"));
+        mpa.setTitle(rs.getString("title"));
+        return mpa;
     }
 }

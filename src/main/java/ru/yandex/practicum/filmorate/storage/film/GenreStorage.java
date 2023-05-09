@@ -14,5 +14,8 @@ public interface GenreStorage {
 
     List<Genre> getFilmGenres(int filmId) throws ObjectNotFoundException;
 
-    void addFilmGenres(Set<Integer> genreIds, int filmId) throws EditObjectException;
+    void addFilmGenres(int filmId, Set<Integer> genreIds) throws EditObjectException;
+
+    void deleteFilmGenres(int filmId);
+
 }

@@ -51,7 +51,7 @@ public class DbGenreStorage implements GenreStorage {
     }
 
     @Override
-    public void addFilmGenres(Set<Integer> genreIds, int filmId) throws EditObjectException {
+    public void addFilmGenres(int filmId, Set<Integer> genreIds) throws EditObjectException {
         String sql = "insert into film_genre(film_id, genre_id)" +
                 "values (?, ?)";
 
@@ -69,6 +69,13 @@ public class DbGenreStorage implements GenreStorage {
                 return genreIds.size();
             }
         });
+    }
+
+    @Override
+    public void deleteFilmGenres(int filmId) {
+        String sql = "delete from film_genre where film_id = ?";
+
+        jdbcTemplate.update(sql, filmId);
     }
 
     private Genre makeGenre(ResultSet rs) throws SQLException {

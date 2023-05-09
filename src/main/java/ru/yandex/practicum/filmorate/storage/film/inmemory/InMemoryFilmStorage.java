@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Component
 @Qualifier("InMemoryFilmStorage")
@@ -39,6 +40,14 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public List<Film> getAll() {
         return new ArrayList<>(films);
+    }
+
+    @Override
+    public List<Film> getTop(int max) {
+        return films.stream()
+                .sorted((film, film1) -> film1.getLikesCount() - film.getLikesCount())
+                .limit(max)
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -21,7 +21,7 @@ public class DbUserStorage implements UserStorage {
     }
 
     @Override
-    public int add(User user) throws ObjectNotFoundException {
+    public int add(User user) {
         return 0;
     }
 

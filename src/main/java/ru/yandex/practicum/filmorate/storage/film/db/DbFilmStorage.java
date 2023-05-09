@@ -55,8 +55,8 @@ public class DbFilmStorage implements FilmStorage {
         int addedFilmId = keyHolder.getKey().intValue();
 
         dbGenreStorage.addFilmGenres(
-                film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet()),
-                addedFilmId
+                addedFilmId,
+                film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet())
         );
 
         return addedFilmId;
@@ -78,21 +78,51 @@ public class DbFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> getAll() {
-        String sql = "select f.*, m.title as mpa_title, count(l.user_id) as likes_count "
+        String sql = "select f.*, m.title as mpa_title "
                 + "from films as f "
                 + "left outer join mpa as m on f.mpa_id = m.id "
                 + "left outer join likes as l on f.id = l.film_id "
-                + "group by f.id, m.id "
-                + "order by likes_count";
+                + "group by f.id, m.id";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
     }
 
     @Override
-    public Film update(Film film) throws ObjectNotFoundException {
-        String sql = "update ";
+    public List<Film> getTop(int max) {
+        String sql = "select f.*, m.title as mpa_title "
+                + "from films as f "
+                + "left outer join mpa as m on f.mpa_id = m.id "
+                + "left outer join likes as l on f.id = l.film_id "
+                + "group by f.id, m.id "
+                + "order by count(l.user_id) desc "
+                + "limit ?";
 
-        return null;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), max);
+    }
+
+    @Override
+    public Film update(Film film) throws ObjectNotFoundException {
+        String sql = "update films set name = ?, description = ?, release_date = ?, duration = ?, mpa_id = ?"
+                + "where id = ?";
+
+        jdbcTemplate.update(sql,
+                film.getName(),
+                film.getDescription(),
+                Date.valueOf(film.getReleaseDate()),
+                film.getDuration(),
+                film.getMpa().getId()
+        );
+
+        List<Genre> currentGenres = dbGenreStorage.getFilmGenres(film.getId());
+        if (!currentGenres.equals(film.getGenres())) {
+            dbGenreStorage.deleteFilmGenres(film.getId());
+            dbGenreStorage.addFilmGenres(
+                    film.getId(),
+                    film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet())
+            );
+        }
+
+        return get(film.getId());
     }
 
     @Override

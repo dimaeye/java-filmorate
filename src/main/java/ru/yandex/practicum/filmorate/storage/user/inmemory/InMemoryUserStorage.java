@@ -28,7 +28,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User get(int userId) throws ObjectNotFoundException {
+    public User get(int userId) {
         Optional<User> optionalUser = users.stream().filter(u -> u.getId() == userId).findFirst();
         if (optionalUser.isPresent())
             return optionalUser.get();

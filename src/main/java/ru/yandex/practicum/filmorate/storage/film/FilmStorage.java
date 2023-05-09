@@ -13,6 +13,8 @@ public interface FilmStorage {
 
     List<Film> getAll();
 
+    List<Film> getTop(int max);
+
     Film update(Film film) throws ObjectNotFoundException;
 
     void delete(int filmId) throws ObjectNotFoundException;

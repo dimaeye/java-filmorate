@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film.db;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Qualifier("DbLikesStorage")
 public class DbLikesStorage implements LikesStorage {
     private final JdbcTemplate jdbcTemplate;
 
@@ -30,5 +32,20 @@ public class DbLikesStorage implements LikesStorage {
         }
 
         return userLikes;
+    }
+
+    @Override
+    public void addLike(int filmId, int userId) {
+        String sql = "insert into likes(filmI_id, user_id)"
+                + "values(?,?)";
+
+        jdbcTemplate.update(sql, filmId, userId);
+    }
+
+    @Override
+    public void deleteLike(int filmId, int userId) {
+        String sql = "delete from likes where film_id = ? and user_id = ?";
+
+        jdbcTemplate.update(sql, filmId, userId);
     }
 }

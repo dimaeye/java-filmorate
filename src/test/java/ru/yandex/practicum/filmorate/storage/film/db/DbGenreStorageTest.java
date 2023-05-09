@@ -48,8 +48,9 @@ class DbGenreStorageTest {
     void getAllGenres() {
         List<Genre> genres = dbGenreStorage.getAllGenres();
 
-        List<String> allTitlesGenre = genres.stream().
-                map(Genre::getTitle).collect(Collectors.toList());
+        List<String> allTitlesGenre = genres.stream()
+                .map(Genre::getTitle)
+                .collect(Collectors.toList());
 
         assertAll(
                 () -> assertEquals(6, allTitlesGenre.size()),

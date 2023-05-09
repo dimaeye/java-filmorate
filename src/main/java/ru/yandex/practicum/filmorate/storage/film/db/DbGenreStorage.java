@@ -31,12 +31,12 @@ public class DbGenreStorage implements GenreStorage {
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenre(rs), genreId)
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new ObjectNotFoundException("Жанр с id = " + genreId + "не найден"));
+                .orElseThrow(() -> new ObjectNotFoundException("Жанр с id = " + genreId + " не найден"));
     }
 
     @Override
     public List<Genre> getAllGenres() {
-        String sql = "select * from genre";
+        String sql = "select * from genre order by id";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenre(rs));
     }
 
@@ -46,7 +46,7 @@ public class DbGenreStorage implements GenreStorage {
                 "where id in (" +
                 "   select genre_id from film_genre" +
                 "   where film_id = ?" +
-                ")";
+                ") order by id";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenre(rs), filmId);
     }
 

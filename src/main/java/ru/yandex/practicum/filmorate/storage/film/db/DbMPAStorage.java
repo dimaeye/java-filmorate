@@ -27,12 +27,12 @@ public class DbMPAStorage implements MPAStorage {
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs), mpaId)
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new ObjectNotFoundException("MPA с id= " + mpaId + "не найден"));
+                .orElseThrow(() -> new ObjectNotFoundException("MPA с id = " + mpaId + " не найден"));
     }
 
     @Override
     public List<MPA> getAllMPA() {
-        String sql = "select * from";
+        String sql = "select * from mpa order by id";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs));
     }

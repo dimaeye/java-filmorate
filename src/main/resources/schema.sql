@@ -112,7 +112,8 @@ INSERT INTO genre(id, title)
         SELECT 2, 'Драма' UNION
         SELECT 3, 'Мультфильм' UNION
         SELECT 4, 'Триллер' UNION
-        SELECT 5, 'Документальный'
+        SELECT 5, 'Документальный' UNION
+        SELECT 6, 'Боевик'
     )
 WHERE not exists(SELECT * FROM genre);
 

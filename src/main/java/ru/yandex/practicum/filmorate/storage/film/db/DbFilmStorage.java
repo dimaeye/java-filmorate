@@ -29,7 +29,11 @@ public class DbFilmStorage implements FilmStorage {
     private final DbLikesStorage dbLikesStorage;
 
     @Autowired
-    public DbFilmStorage(JdbcTemplate jdbcTemplate, DbGenreStorage dbGenreStorage, DbLikesStorage dbLikesStorage) {
+    public DbFilmStorage(
+            JdbcTemplate jdbcTemplate,
+            DbGenreStorage dbGenreStorage,
+            @Qualifier("DbLikesStorage")
+            DbLikesStorage dbLikesStorage) {
         this.jdbcTemplate = jdbcTemplate;
         this.dbGenreStorage = dbGenreStorage;
         this.dbLikesStorage = dbLikesStorage;
@@ -37,8 +41,8 @@ public class DbFilmStorage implements FilmStorage {
 
     @Override
     public int add(Film film) throws EditObjectException {
-        String sql = "insert into films(name, description, release_date, duration, mpa_id)" +
-                "values (?, ?, ?, ?, ?)";
+        String sql = "insert into films(name, description, release_date, duration, mpa_id)"
+                + "values (?, ?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -110,7 +114,8 @@ public class DbFilmStorage implements FilmStorage {
                 film.getDescription(),
                 Date.valueOf(film.getReleaseDate()),
                 film.getDuration(),
-                film.getMpa().getId()
+                film.getMpa().getId(),
+                film.getId()
         );
 
         List<Genre> currentGenres = dbGenreStorage.getFilmGenres(film.getId());
@@ -141,11 +146,12 @@ public class DbFilmStorage implements FilmStorage {
                 rs.getString("name"),
                 rs.getString("description"),
                 rs.getDate("release_date").toLocalDate(),
-                rs.getInt("duration"), dbGenreStorage.getFilmGenres(filmId),
+                rs.getInt("duration"),
                 mpa
         );
         film.setId(filmId);
 
+        film.setGenres(dbGenreStorage.getFilmGenres(filmId));
         List<Integer> likes = dbLikesStorage.getAllFilmLikes(filmId);
         likes.forEach(film::addLike);
 

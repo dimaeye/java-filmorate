@@ -24,10 +24,11 @@ public class FilmServiceImpl implements FilmService {
     public FilmServiceImpl(
             @Qualifier("DbFilmStorage")
             FilmStorage filmStorage,
-            @Qualifier("InMemoryUserStorage")
+            @Qualifier("DbUserStorage")
             UserStorage userStorage,
             @Qualifier("DbLikesStorage")
-            LikesStorage likesStorage) {
+            LikesStorage likesStorage
+    ) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.likesStorage = likesStorage;

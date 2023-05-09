@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.exception.EditObjectException;
 import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 
 import java.util.List;
@@ -12,9 +11,9 @@ public interface GenreStorage {
 
     List<Genre> getAllGenres();
 
-    List<Genre> getFilmGenres(int filmId) throws ObjectNotFoundException;
+    List<Genre> getFilmGenres(int filmId);
 
-    void addFilmGenres(int filmId, Set<Integer> genreIds) throws EditObjectException;
+    void addFilmGenres(int filmId, Set<Integer> genreIds);
 
     void deleteFilmGenres(int filmId);
 

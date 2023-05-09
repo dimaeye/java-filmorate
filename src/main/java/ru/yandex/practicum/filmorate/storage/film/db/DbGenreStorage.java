@@ -5,7 +5,6 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.exception.EditObjectException;
 import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.storage.film.GenreStorage;
 
@@ -41,7 +40,7 @@ public class DbGenreStorage implements GenreStorage {
     }
 
     @Override
-    public List<Genre> getFilmGenres(int filmId) throws ObjectNotFoundException {
+    public List<Genre> getFilmGenres(int filmId) {
         String sql = "select * from genre " +
                 "where id in (" +
                 "   select genre_id from film_genre" +
@@ -51,7 +50,7 @@ public class DbGenreStorage implements GenreStorage {
     }
 
     @Override
-    public void addFilmGenres(int filmId, Set<Integer> genreIds) throws EditObjectException {
+    public void addFilmGenres(int filmId, Set<Integer> genreIds) {
         String sql = "insert into film_genre(film_id, genre_id)" +
                 "values (?, ?)";
 

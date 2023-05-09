@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPA;
-import ru.yandex.practicum.filmorate.storage.exception.EditObjectException;
 import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
@@ -40,7 +39,7 @@ public class DbFilmStorage implements FilmStorage {
     }
 
     @Override
-    public int add(Film film) throws EditObjectException {
+    public int add(Film film) {
         String sql = "insert into films(name, description, release_date, duration, mpa_id)"
                 + "values (?, ?, ?, ?, ?)";
 
@@ -109,7 +108,7 @@ public class DbFilmStorage implements FilmStorage {
         String sql = "update films set name = ?, description = ?, release_date = ?, duration = ?, mpa_id = ?"
                 + "where id = ?";
 
-        jdbcTemplate.update(sql,
+        int res = jdbcTemplate.update(sql,
                 film.getName(),
                 film.getDescription(),
                 Date.valueOf(film.getReleaseDate()),
@@ -117,6 +116,9 @@ public class DbFilmStorage implements FilmStorage {
                 film.getMpa().getId(),
                 film.getId()
         );
+
+        if (res == 0)
+            throw new ObjectNotFoundException("Фильм с id = " + film.getId() + " не найден для обновления!");
 
         List<Genre> currentGenres = dbGenreStorage.getFilmGenres(film.getId());
         if (!currentGenres.equals(film.getGenres())) {
@@ -133,7 +135,9 @@ public class DbFilmStorage implements FilmStorage {
     @Override
     public void delete(int filmId) throws ObjectNotFoundException {
         String sql = "delete from films where id = ?";
-        jdbcTemplate.update(sql, filmId);
+        int res = jdbcTemplate.update(sql, filmId);
+        if (res == 0)
+            throw new ObjectNotFoundException("Фильм с id = " + filmId + " не удален!");
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {

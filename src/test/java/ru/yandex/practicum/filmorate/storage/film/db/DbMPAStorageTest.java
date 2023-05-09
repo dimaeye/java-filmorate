@@ -31,8 +31,9 @@ class DbMPAStorageTest {
     @Test
     void getAllMPA() {
         List<MPA> allMPA = dbMPAStorage.getAllMPA();
-        List<String> allTitlesMPA = dbMPAStorage.getAllMPA().stream().
-                map(MPA::getTitle).collect(Collectors.toList());
+        List<String> allTitlesMPA = dbMPAStorage.getAllMPA().stream()
+                .map(MPA::getTitle)
+                .collect(Collectors.toList());
 
         assertAll(
                 () -> assertEquals(5, allMPA.size()),

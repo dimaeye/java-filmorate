@@ -53,7 +53,7 @@ class DbUserStorageTest {
         int userId = dbUserStorage.add(user);
         List<User> allUsers = dbUserStorage.getAll();
 
-        assertTrue(allUsers.stream().filter(u -> u.getId() == userId).findFirst().isPresent());
+        assertTrue(allUsers.stream().anyMatch(u -> u.getId() == userId));
     }
 
     @Test

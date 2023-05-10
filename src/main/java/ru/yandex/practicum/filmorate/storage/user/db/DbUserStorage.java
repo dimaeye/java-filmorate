@@ -53,7 +53,7 @@ public class DbUserStorage implements UserStorage {
 
     @Override
     public User get(int userId) throws ObjectNotFoundException {
-        String sql = "select * from users where id = ?";
+        String sql = "select id, email, login, name, birthday from users where id = ?";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs), userId)
                 .stream()
@@ -65,7 +65,7 @@ public class DbUserStorage implements UserStorage {
 
     @Override
     public List<User> getAll() {
-        String sql = "select * from users";
+        String sql = "select id, email, login, name, birthday from users";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs));
     }

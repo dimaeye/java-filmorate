@@ -67,7 +67,7 @@ public class DbFilmStorage implements FilmStorage {
 
     @Override
     public Film get(int filmId) throws ObjectNotFoundException {
-        String sql = "select f.*, m.title as mpa_title "
+        String sql = "select f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.title as mpa_title "
                 + "from films as f "
                 + "left outer join mpa as m on f.mpa_id = m.id "
                 + "where f.id = ? "
@@ -81,7 +81,7 @@ public class DbFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> getAll() {
-        String sql = "select f.*, m.title as mpa_title "
+        String sql = "select f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.title as mpa_title "
                 + "from films as f "
                 + "left outer join mpa as m on f.mpa_id = m.id "
                 + "left outer join likes as l on f.id = l.film_id "
@@ -92,7 +92,7 @@ public class DbFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> getTop(int max) {
-        String sql = "select f.*, m.title as mpa_title "
+        String sql = "select f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.title as mpa_title "
                 + "from films as f "
                 + "left outer join mpa as m on f.mpa_id = m.id "
                 + "left outer join likes as l on f.id = l.film_id "

@@ -16,7 +16,7 @@ import java.util.Set;
 
 @Component
 public class DbGenreStorage implements GenreStorage {
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     @Autowired
     public DbGenreStorage(JdbcTemplate jdbcTemplate) {
@@ -25,7 +25,7 @@ public class DbGenreStorage implements GenreStorage {
 
     @Override
     public Genre getGenre(int genreId) throws ObjectNotFoundException {
-        String sql = "select * from genre where id = ?";
+        String sql = "select id, title from genre where id = ?";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenre(rs), genreId)
                 .stream()
@@ -35,13 +35,13 @@ public class DbGenreStorage implements GenreStorage {
 
     @Override
     public List<Genre> getAllGenres() {
-        String sql = "select * from genre order by id";
+        String sql = "select id, title from genre order by id";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenre(rs));
     }
 
     @Override
     public List<Genre> getFilmGenres(int filmId) {
-        String sql = "select * from genre " +
+        String sql = "select id, title from genre " +
                 "where id in (" +
                 "   select genre_id from film_genre" +
                 "   where film_id = ?" +
@@ -55,7 +55,7 @@ public class DbGenreStorage implements GenreStorage {
                 "values (?, ?)";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-            private Integer[] genres = genreIds.toArray(new Integer[0]);
+            private final Integer[] genres = genreIds.toArray(new Integer[0]);
 
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {

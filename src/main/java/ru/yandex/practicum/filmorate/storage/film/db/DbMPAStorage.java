@@ -13,7 +13,7 @@ import java.util.List;
 
 @Component
 public class DbMPAStorage implements MPAStorage {
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     @Autowired
     public DbMPAStorage(JdbcTemplate jdbcTemplate) {
@@ -22,7 +22,7 @@ public class DbMPAStorage implements MPAStorage {
 
     @Override
     public MPA getMPA(int mpaId) throws ObjectNotFoundException {
-        String sql = "select * from mpa where id = ?";
+        String sql = "select id, title from mpa where id = ?";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs), mpaId)
                 .stream()
@@ -32,7 +32,7 @@ public class DbMPAStorage implements MPAStorage {
 
     @Override
     public List<MPA> getAllMPA() {
-        String sql = "select * from mpa order by id";
+        String sql = "select id, title from mpa order by id";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs));
     }

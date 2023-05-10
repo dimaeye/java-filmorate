@@ -24,7 +24,7 @@ public class DbFriendStorage implements FriendStorage {
 
     @Override
     public List<User> getAllFriends(int userId) {
-        String sql = "select * from users " +
+        String sql = "select id, email, login, name, birthday from users " +
                 "where id in ( " +
                 "   select f.friend_id from users as u " +
                 "   left outer join friends as f on u.id = f.user_id " +

@@ -83,7 +83,7 @@ public class DbFilmStorage implements FilmStorage {
                 + "    select array_agg(user_id) as user_id_likes, film_id from likes "
                 + "    where film_id = :id "
                 + "    group by film_id "
-                + ") as l on f.id = fg.film_id "
+                + ") as l on f.id = l.film_id "
                 + "where f.id = :id "
                 + "group by f.id, m.id, fg.genre_ids, l.user_id_likes";
 
@@ -107,7 +107,7 @@ public class DbFilmStorage implements FilmStorage {
                 + "left outer join ( "
                 + "    select array_agg(user_id) as user_id_likes, film_id from likes "
                 + "    group by film_id "
-                + ") as l on f.id = fg.film_id "
+                + ") as l on f.id = l.film_id "
                 + "group by f.id, m.id, fg.genre_ids, l.user_id_likes";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
@@ -127,9 +127,9 @@ public class DbFilmStorage implements FilmStorage {
                 + "left outer join ( "
                 + "    select array_agg(user_id) as user_id_likes, film_id from likes "
                 + "    group by film_id "
-                + ") as l on f.id = fg.film_id "
+                + ") as l on f.id = l.film_id "
                 + "group by f.id, m.id, fg.genre_ids, l.user_id_likes "
-                + "order by cardinality(l.user_id_likes) desc "
+                + "order by cardinality(l.user_id_likes) desc nulls last "
                 + "limit ?";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), max);

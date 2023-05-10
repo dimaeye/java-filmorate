@@ -3,6 +3,9 @@ package ru.yandex.practicum.filmorate.storage.user.db;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -10,26 +13,19 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
 
 @Component
 @Qualifier("DbUserStorage")
 public class DbUserStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final DbFriendStorage dbFriendStorage;
+    private final NamedParameterJdbcTemplate namedJdbcTemplate;
 
     @Autowired
-    public DbUserStorage(
-            JdbcTemplate jdbcTemplate,
-            @Qualifier("DbFriendStorage")
-            DbFriendStorage dbFriendStorage
-    ) {
+    public DbUserStorage(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.dbFriendStorage = dbFriendStorage;
+        this.namedJdbcTemplate = namedJdbcTemplate;
     }
 
     @Override
@@ -53,9 +49,20 @@ public class DbUserStorage implements UserStorage {
 
     @Override
     public User get(int userId) throws ObjectNotFoundException {
-        String sql = "select id, email, login, name, birthday from users where id = ?";
+        SqlParameterSource parameters = new MapSqlParameterSource("id", userId);
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs), userId)
+        String sql = "select u.id, u.email, u.login, u.name, u.birthday, f.friend_ids "
+                + "from users as u "
+                + "left outer join ("
+                + "     select array_agg(friend_id) as friend_ids, user_id "
+                + "     from friends "
+                + "     where user_id = :id "
+                + "     group by user_id"
+                + ") as f on u.id = f.user_id "
+                + "where u.id = :id "
+                + "group by u.id";
+
+        return namedJdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeUser(rs))
                 .stream()
                 .findFirst()
                 .orElseThrow(() ->
@@ -65,7 +72,14 @@ public class DbUserStorage implements UserStorage {
 
     @Override
     public List<User> getAll() {
-        String sql = "select id, email, login, name, birthday from users";
+        String sql = "select u.id, u.email, u.login, u.name, u.birthday, f.friend_ids "
+                + "from users as u "
+                + "left outer join ("
+                + "     select array_agg(friend_id) as friend_ids, user_id "
+                + "     from friends "
+                + "     group by user_id"
+                + ") as f on u.id = f.user_id "
+                + "group by u.id";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs));
     }
@@ -101,8 +115,13 @@ public class DbUserStorage implements UserStorage {
         user.setId(rs.getInt("id"));
         user.setName(rs.getString("name"));
 
-        List<User> friends = dbFriendStorage.getAllFriends(user.getId());
-        friends.forEach(f -> user.addFriend(f.getId()));
+        Array allFriendIds = rs.getArray("friend_ids");
+        if (allFriendIds != null) {
+            Object[] friends = (Object[]) allFriendIds.getArray();
+            for (Object friendId : friends) {
+                user.addFriend((int) friendId);
+            }
+        }
 
         return user;
     }

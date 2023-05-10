@@ -3,6 +3,9 @@ package ru.yandex.practicum.filmorate.storage.film.db;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -11,11 +14,10 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.GenreStorage;
 
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,19 +25,18 @@ import java.util.stream.Collectors;
 @Qualifier("DbFilmStorage")
 public class DbFilmStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final DbGenreStorage dbGenreStorage;
-
-    private final DbLikesStorage dbLikesStorage;
+    private final NamedParameterJdbcTemplate namedJdbcTemplate;
+    private final GenreStorage dbGenreStorage;
 
     @Autowired
     public DbFilmStorage(
             JdbcTemplate jdbcTemplate,
-            DbGenreStorage dbGenreStorage,
-            @Qualifier("DbLikesStorage")
-            DbLikesStorage dbLikesStorage) {
+            NamedParameterJdbcTemplate namedJdbcTemplate,
+            GenreStorage genreStorage
+    ) {
         this.jdbcTemplate = jdbcTemplate;
-        this.dbGenreStorage = dbGenreStorage;
-        this.dbLikesStorage = dbLikesStorage;
+        this.namedJdbcTemplate = namedJdbcTemplate;
+        this.dbGenreStorage = genreStorage;
     }
 
     @Override
@@ -67,13 +68,26 @@ public class DbFilmStorage implements FilmStorage {
 
     @Override
     public Film get(int filmId) throws ObjectNotFoundException {
-        String sql = "select f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.title as mpa_title "
+        SqlParameterSource parameters = new MapSqlParameterSource("id", filmId);
+        String sql = "select f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, "
+                + "m.title as mpa_title, "
+                + "fg.genre_ids, l.user_id_likes "
                 + "from films as f "
                 + "left outer join mpa as m on f.mpa_id = m.id "
-                + "where f.id = ? "
-                + "group by f.id, m.id";
+                + "left outer join ( "
+                + "    select array_agg(genre_id) as genre_ids, film_id from film_genre "
+                + "    where film_id = :id "
+                + "    group by film_id "
+                + ") as fg on f.id = fg.film_id "
+                + "left outer join ( "
+                + "    select array_agg(user_id) as user_id_likes, film_id from likes "
+                + "    where film_id = :id "
+                + "    group by film_id "
+                + ") as l on f.id = fg.film_id "
+                + "where f.id = :id "
+                + "group by f.id, m.id, fg.genre_ids, l.user_id_likes";
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), filmId)
+        return namedJdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs))
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new ObjectNotFoundException("Фильм с id = " + filmId + " не найден"));
@@ -81,23 +95,41 @@ public class DbFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> getAll() {
-        String sql = "select f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.title as mpa_title "
+        String sql = "select f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, "
+                + "m.title as mpa_title, "
+                + "fg.genre_ids, l.user_id_likes "
                 + "from films as f "
                 + "left outer join mpa as m on f.mpa_id = m.id "
-                + "left outer join likes as l on f.id = l.film_id "
-                + "group by f.id, m.id";
+                + "left outer join ( "
+                + "    select array_agg(genre_id) as genre_ids, film_id from film_genre "
+                + "    group by film_id "
+                + ") as fg on f.id = fg.film_id "
+                + "left outer join ( "
+                + "    select array_agg(user_id) as user_id_likes, film_id from likes "
+                + "    group by film_id "
+                + ") as l on f.id = fg.film_id "
+                + "group by f.id, m.id, fg.genre_ids, l.user_id_likes";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
     }
 
     @Override
     public List<Film> getTop(int max) {
-        String sql = "select f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.title as mpa_title "
+        String sql = "select f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, "
+                + "m.title as mpa_title, "
+                + "fg.genre_ids, l.user_id_likes "
                 + "from films as f "
                 + "left outer join mpa as m on f.mpa_id = m.id "
-                + "left outer join likes as l on f.id = l.film_id "
-                + "group by f.id, m.id "
-                + "order by count(l.user_id) desc "
+                + "left outer join ( "
+                + "    select array_agg(genre_id) as genre_ids, film_id from film_genre "
+                + "    group by film_id "
+                + ") as fg on f.id = fg.film_id "
+                + "left outer join ( "
+                + "    select array_agg(user_id) as user_id_likes, film_id from likes "
+                + "    group by film_id "
+                + ") as l on f.id = fg.film_id "
+                + "group by f.id, m.id, fg.genre_ids, l.user_id_likes "
+                + "order by cardinality(l.user_id_likes) desc "
                 + "limit ?";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), max);
@@ -155,9 +187,24 @@ public class DbFilmStorage implements FilmStorage {
         );
         film.setId(filmId);
 
-        film.setGenres(dbGenreStorage.getFilmGenres(filmId));
-        List<Integer> likes = dbLikesStorage.getAllFilmLikes(filmId);
-        likes.forEach(film::addLike);
+        Array filmGenreIds = rs.getArray("genre_ids");
+        if (filmGenreIds != null) {
+            List<Genre> genres = dbGenreStorage.getAllGenres();
+            List<Object> genreIds = Arrays.asList((Object[]) filmGenreIds.getArray());
+            film.setGenres(
+                    genres.stream()
+                            .filter(g -> genreIds.contains(g.getId()))
+                            .collect(Collectors.toList())
+            );
+        }
+
+        Array userLikes = rs.getArray("user_id_likes");
+        if (userLikes != null) {
+            Object[] likes = (Object[]) userLikes.getArray();
+            for (Object userId : likes) {
+                film.addLike((int) userId);
+            }
+        }
 
         return film;
     }

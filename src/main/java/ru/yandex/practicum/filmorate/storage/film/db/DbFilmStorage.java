@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class DbFilmStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final NamedParameterJdbcTemplate namedJdbcTemplate;
-    private final GenreStorage dbGenreStorage;
+    private final GenreStorage genreStorage;
 
     @Autowired
     public DbFilmStorage(
@@ -36,7 +36,7 @@ public class DbFilmStorage implements FilmStorage {
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.namedJdbcTemplate = namedJdbcTemplate;
-        this.dbGenreStorage = genreStorage;
+        this.genreStorage = genreStorage;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class DbFilmStorage implements FilmStorage {
 
         int addedFilmId = keyHolder.getKey().intValue();
 
-        dbGenreStorage.addFilmGenres(
+        genreStorage.addFilmGenres(
                 addedFilmId,
                 film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet())
         );
@@ -87,7 +87,9 @@ public class DbFilmStorage implements FilmStorage {
                 + "where f.id = :id "
                 + "group by f.id, m.id, fg.genre_ids, l.user_id_likes";
 
-        return namedJdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs))
+        final List<Genre> filmGenres = genreStorage.getFilmGenres(filmId);
+
+        return namedJdbcTemplate.query(sql, parameters, (rs, rowNum) -> makeFilm(rs, filmGenres))
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new ObjectNotFoundException("Фильм с id = " + filmId + " не найден"));
@@ -110,7 +112,9 @@ public class DbFilmStorage implements FilmStorage {
                 + ") as l on f.id = l.film_id "
                 + "group by f.id, m.id, fg.genre_ids, l.user_id_likes";
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
+        final List<Genre> allGenres = genreStorage.getAllGenres();
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs, allGenres));
     }
 
     @Override
@@ -132,7 +136,9 @@ public class DbFilmStorage implements FilmStorage {
                 + "order by cardinality(l.user_id_likes) desc nulls last "
                 + "limit ?";
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), max);
+        final List<Genre> allGenres = genreStorage.getAllGenres();
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs, allGenres), max);
     }
 
     @Override
@@ -152,10 +158,10 @@ public class DbFilmStorage implements FilmStorage {
         if (res == 0)
             throw new ObjectNotFoundException("Фильм с id = " + film.getId() + " не найден для обновления!");
 
-        List<Genre> currentGenres = dbGenreStorage.getFilmGenres(film.getId());
+        final List<Genre> currentGenres = genreStorage.getFilmGenres(film.getId());
         if (!currentGenres.equals(film.getGenres())) {
-            dbGenreStorage.deleteFilmGenres(film.getId());
-            dbGenreStorage.addFilmGenres(
+            genreStorage.deleteFilmGenres(film.getId());
+            genreStorage.addFilmGenres(
                     film.getId(),
                     film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet())
             );
@@ -172,7 +178,7 @@ public class DbFilmStorage implements FilmStorage {
             throw new ObjectNotFoundException("Фильм с id = " + filmId + " не удален!");
     }
 
-    private Film makeFilm(ResultSet rs) throws SQLException {
+    private Film makeFilm(ResultSet rs, List<Genre> genres) throws SQLException {
         int filmId = rs.getInt("id");
 
         MPA mpa = new MPA(rs.getInt("mpa_id"));
@@ -188,8 +194,7 @@ public class DbFilmStorage implements FilmStorage {
         film.setId(filmId);
 
         Array filmGenreIds = rs.getArray("genre_ids");
-        if (filmGenreIds != null) {
-            List<Genre> genres = dbGenreStorage.getAllGenres();
+        if (filmGenreIds != null && !genres.isEmpty()) {
             List<Object> genreIds = Arrays.asList((Object[]) filmGenreIds.getArray());
             film.setGenres(
                     genres.stream()

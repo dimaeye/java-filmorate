@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import java.util.List;
 
 public interface UserStorage {
-    int add(User user) throws ObjectNotFoundException;
+    int add(User user);
 
     User get(int userId) throws ObjectNotFoundException;
 

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.user.inmemory;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
+@Qualifier("InMemoryUserStorage")
 public class InMemoryUserStorage implements UserStorage {
     private final List<User> users = new ArrayList<>();
     private final AtomicInteger uniqueUserId = new AtomicInteger(0);
@@ -26,7 +28,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User get(int userId) throws ObjectNotFoundException {
+    public User get(int userId) {
         Optional<User> optionalUser = users.stream().filter(u -> u.getId() == userId).findFirst();
         if (optionalUser.isPresent())
             return optionalUser.get();

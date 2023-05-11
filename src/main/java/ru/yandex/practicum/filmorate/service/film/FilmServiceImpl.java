@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service.film;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.film.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.user.UserNotFoundException;
@@ -8,26 +9,35 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.LikesStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmServiceImpl implements FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final LikesStorage likesStorage;
 
     @Autowired
-    public FilmServiceImpl(FilmStorage filmStorage, UserStorage userStorage) {
+    public FilmServiceImpl(
+            @Qualifier("DbFilmStorage")
+            FilmStorage filmStorage,
+            @Qualifier("DbUserStorage")
+            UserStorage userStorage,
+            @Qualifier("DbLikesStorage")
+            LikesStorage likesStorage
+    ) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
+        this.likesStorage = likesStorage;
     }
 
     @Override
     public Film addFilm(Film film) {
-        filmStorage.add(film);
-        return film;
+        int filmId = filmStorage.add(film);
+        return getFilm(filmId);
     }
 
     @Override
@@ -62,8 +72,7 @@ public class FilmServiceImpl implements FilmService {
         Film film = getFilm(filmId);
         User user = getUser(userId);
 
-        film.addLike(user.getId());
-        filmStorage.update(film);
+        likesStorage.addLike(film.getId(), user.getId());
     }
 
     @Override
@@ -71,16 +80,12 @@ public class FilmServiceImpl implements FilmService {
         Film film = getFilm(filmId);
         User user = getUser(userId);
 
-        film.deleteLike(user.getId());
-        filmStorage.update(film);
+        likesStorage.deleteLike(film.getId(), user.getId());
     }
 
     @Override
     public List<Film> getTopFilms(int count) {
-        return filmStorage.getAll().stream()
-                .sorted((film, film1) -> film1.getLikesCount() - film.getLikesCount())
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.getTop(count);
     }
 
     @Override

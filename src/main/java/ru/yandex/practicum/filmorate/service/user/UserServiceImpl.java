@@ -1,28 +1,36 @@
 package ru.yandex.practicum.filmorate.service.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.exception.ObjectNotFoundException;
+import ru.yandex.practicum.filmorate.storage.user.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserStorage userStorage;
+    private final FriendStorage friendStorage;
 
     @Autowired
-    public UserServiceImpl(UserStorage userStorage) {
+    public UserServiceImpl(
+            @Qualifier("DbUserStorage")
+            UserStorage userStorage,
+            @Qualifier("DbFriendStorage")
+            FriendStorage friendStorage
+    ) {
         this.userStorage = userStorage;
+        this.friendStorage = friendStorage;
     }
 
     @Override
     public User addUser(User user) {
-        userStorage.add(user);
-        return user;
+        int userId = userStorage.add(user);
+        return getUser(userId);
     }
 
     @Override
@@ -62,11 +70,7 @@ public class UserServiceImpl implements UserService {
         final User user = getUser(userId);
         final User friend = getUser(friendId);
 
-        user.addFriend(friend.getId());
-        userStorage.update(user);
-
-        friend.addFriend(user.getId());
-        userStorage.update(user);
+        friendStorage.addFriend(user.getId(), friend.getId());
     }
 
     @Override
@@ -74,18 +78,11 @@ public class UserServiceImpl implements UserService {
         final User user = getUser(userId);
         final User friend = getUser(friendId);
 
-        user.deleteFriend(friend.getId());
-        userStorage.update(user);
-
-        friend.deleteFriend(user.getId());
-        userStorage.update(friend);
+        friendStorage.deleteFriend(user.getId(), friend.getId());
     }
 
     @Override
     public List<User> getFriends(int userId) throws UserNotFoundException {
-        return getUser(userId)
-                .getAllFriends().stream()
-                .map(userStorage::get)
-                .collect(Collectors.toList());
+        return friendStorage.getAllFriends(userId);
     }
 }

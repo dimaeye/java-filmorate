@@ -9,6 +9,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import java.time.LocalDate;
@@ -34,7 +35,7 @@ class FilmControllerTest {
     void addFilm() throws Exception {
         Film film = new Film(
                 "nisi eiusmod", "adipisicing",
-                LocalDate.of(1967, 3, 25), 100
+                LocalDate.of(1967, 3, 25), 100, new MPA(1)
         );
 
         Mockito.when(filmService.addFilm(any(Film.class))).thenReturn(film);
@@ -56,7 +57,7 @@ class FilmControllerTest {
     void shouldReturnBadRequestWhenCreateFilmWithFailName() throws Exception {
         Film film = new Film(
                 "   ", "adipisicing",
-                LocalDate.of(1967, 3, 25), 100
+                LocalDate.of(1967, 3, 25), 100, new MPA(1)
         );
 
         mockMvc.perform(post("/films")
@@ -73,7 +74,7 @@ class FilmControllerTest {
                 "Film name", "Пятеро друзей ( комик-группа «Шарло»), приезжают в город Бризуль. " +
                 "Здесь они хотят разыскать господина Огюста Куглова, который задолжал им деньги, " +
                 "а именно 20 миллионов. о Куглов, который за время «своего отсутствия», стал кандидатом Коломбани.",
-                LocalDate.of(1967, 3, 25), 100
+                LocalDate.of(1967, 3, 25), 100, new MPA(1)
         );
 
         mockMvc.perform(post("/films")
@@ -88,7 +89,7 @@ class FilmControllerTest {
     void shouldReturnBadRequestWhenCreateFilmWithBadReleaseDate() throws Exception {
         Film film = new Film(
                 "Film", "adipisicing",
-                LocalDate.of(1895, 12, 27), 100
+                LocalDate.of(1895, 12, 27), 100, new MPA(1)
         );
 
         mockMvc.perform(post("/films")
@@ -103,7 +104,7 @@ class FilmControllerTest {
     void shouldReturnIsCreatedWhenCreateFilmWithReleaseDateEqualDateOfBirthOfCinema() throws Exception {
         Film film = new Film(
                 "Film", "adipisicing",
-                LocalDate.of(1895, 12, 28), 100
+                LocalDate.of(1895, 12, 28), 100, new MPA(1)
         );
 
         Mockito.when(filmService.addFilm(any(Film.class))).thenReturn(film);
@@ -120,7 +121,7 @@ class FilmControllerTest {
     void shouldReturnBadRequestWhenCreateFilmWithNegativeDuration() throws Exception {
         Film film = new Film(
                 "Film", "adipisicing",
-                LocalDate.of(1895, 12, 29), -100
+                LocalDate.of(1895, 12, 29), -100, new MPA(1)
         );
 
         mockMvc.perform(post("/films")

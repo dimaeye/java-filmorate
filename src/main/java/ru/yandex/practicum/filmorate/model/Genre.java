@@ -6,7 +6,7 @@ import lombok.*;
 @RequiredArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class MPA {
+public class Genre {
     @NonNull
     @Getter
     private int id;
